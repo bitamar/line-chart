@@ -9,7 +9,7 @@ describe 'misc', ->
 
   describe 'getBestColumnWidth', ->
     it 'should handle no data', ->
-      expect(n3utils.getBestColumnWidth({}, [])).to.equal 10
+      expect(n3utils.getBestColumnWidth({}, [])).to.equal(10)
 
   it 'should compute data per series', ->
     data = [
@@ -128,12 +128,12 @@ describe 'misc', ->
         y: {}
 
     series = [y: 'value']
-    expect(n3utils.getWidestOrdinate(data, series, options)).to.equal 15
+    expect(n3utils.getWidestOrdinate(data, series, options)).to.equal(15)
 
     series = [{y: 'value'}, {y: 'foo'}]
-    expect(n3utils.getWidestOrdinate(data, series, options)).to.equal 1.1548578
+    expect(n3utils.getWidestOrdinate(data, series, options)).to.equal(1.1548578)
 
-  it 'should compute the widest y value - with a labelFunction', ->
+  it 'should compute the widest y value - with a ticksFormatter', ->
     data = [
       {x: 0, foo: 4.154, value: 4}
       {x: 1, foo: 8.15485, value: 8}
@@ -146,10 +146,21 @@ describe 'misc', ->
       axes:
         x: {}
         y: {}
-        y2: {labelFunction: (v) -> 'huehuehuehuehue'}
+        y2: {ticksFormatter: (v) -> 'huehuehuehuehue'}
 
     series = [y: 'value']
-    expect(n3utils.getWidestOrdinate(data, series, options)).to.equal 15
+    expect(n3utils.getWidestOrdinate(data, series, options)).to.equal(15)
 
     series = [{y: 'value'}, {y: 'foo', axis: 'y2'}]
-    expect(n3utils.getWidestOrdinate(data, series, options)).to.equal 'huehuehuehuehue'
+    expect(n3utils.getWidestOrdinate(data, series, options)).to.equal('huehuehuehuehue')
+
+  it 'should generate random uuids', ->
+    numIds = 1000
+
+    # Generate random ids
+    ids = d3.range(numIds).map( n3utils.uuid )
+
+    # Extract all unique elements
+    uids = ids.filter( (value, index, self) -> self.indexOf(value) is index )
+
+    expect(uids.length).to.equal(numIds)

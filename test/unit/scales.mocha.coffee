@@ -108,6 +108,148 @@ describe 'scales', ->
 
       expect(computedYTicks).to.eql(['1.0', '2.0', '3.0'])
 
+    it 'should add rotation if ticksRotate is defined', ->
+
+      xticks = element.childByClass('x axis').children('text')
+      yticks = element.childByClass('y axis').children('text')
+      y2ticks = element.childByClass('y2 axis').children('text')
+
+      expect(xticks[xticks.length - 1].getAttribute('transform')).to.equal(null)
+      expect(yticks[yticks.length - 1].getAttribute('transform')).to.equal(null)
+      expect(y2ticks[y2ticks.length - 1].getAttribute('transform')).to.equal(null)
+      
+      outerScope.$apply ->
+        outerScope.options.axes.x.ticksRotate = 45
+        outerScope.options.axes.y.ticksRotate = -45
+        outerScope.options.axes.y2.ticksRotate = 15.5
+
+      xticks = element.childByClass('x axis').children('text')
+      yticks = element.childByClass('y axis').children('text')
+      y2ticks = element.childByClass('y2 axis').children('text')
+
+      expect(xticks[xticks.length - 1].getAttribute('transform')).to.match(/rotate\(45( [\-0-9]+,[\-0-9]+){0,1}\)$/)
+      expect(yticks[yticks.length - 1].getAttribute('transform')).to.match(/rotate\(-45( [\-0-9]+,[\-0-9]+){0,1}\)$/)
+      expect(y2ticks[y2ticks.length - 1].getAttribute('transform')).to.match(/rotate\(15.5( [\-0-9]+,[\-0-9]+){0,1}\)$/)
+
+    it 'should rotate ticks label around the ticks center if ticksRotate is defined', ->
+      
+      outerScope.$apply ->
+        outerScope.options.axes.x.ticksRotate = 45
+        outerScope.options.axes.y.ticksRotate = -45
+        outerScope.options.axes.y2.ticksRotate = 15.5
+
+      xticks = element.childByClass('x axis').children('text')
+      yticks = element.childByClass('y axis').children('text')
+      y2ticks = element.childByClass('y2 axis').children('text')
+
+      expect(xticks[xticks.length - 1].getAttribute('transform')).to.match(/rotate\([\-0-9.]+ 0,6\)$/)
+      expect(yticks[yticks.length - 1].getAttribute('transform')).to.match(/rotate\([\-0-9.]+ -6,0\)$/)
+      expect(y2ticks[y2ticks.length - 1].getAttribute('transform')).to.match(/rotate\([\-0-9.]+ 6,0\)$/)
+
+    it 'should align ticks if ticksRotate is defined', ->
+
+      xticks = element.childByClass('x axis').children('text')
+      yticks = element.childByClass('y axis').children('text')
+      y2ticks = element.childByClass('y2 axis').children('text')
+
+      expect(xticks[xticks.length - 1].getAttribute('dy')).to.equal('.71em')
+      expect(yticks[yticks.length - 1].getAttribute('dy')).to.equal('.32em')
+      expect(y2ticks[y2ticks.length - 1].getAttribute('dy')).to.equal('.32em')
+
+      outerScope.$apply ->
+        outerScope.options.axes.x.ticksRotate = 45
+        outerScope.options.axes.y.ticksRotate = -45
+        outerScope.options.axes.y2.ticksRotate = 15.5
+
+      xticks = element.childByClass('x axis').children('text')
+      yticks = element.childByClass('y axis').children('text')
+      y2ticks = element.childByClass('y2 axis').children('text')
+
+      expect(xticks[xticks.length - 1].getAttribute('dy')).to.equal(null)
+      expect(yticks[yticks.length - 1].getAttribute('dy')).to.equal('.32em')
+      expect(y2ticks[y2ticks.length - 1].getAttribute('dy')).to.equal('.32em')
+      expect(xticks[xticks.length - 1].getAttribute('transform')).to.match(/^translate\(0,5\)( ){0,1}rotate(.*)/)
+      expect(yticks[yticks.length - 1].getAttribute('transform')).to.match(/^rotate(.*)$/)
+      expect(y2ticks[y2ticks.length - 1].getAttribute('transform')).to.match(/^rotate(.*)$/)
+
+    it 'should set text-anchor for x-axis properly if ticksRotate is defined', ->
+
+      outerScope.$apply ->
+        outerScope.options.axes.x.ticksRotate = undefined
+
+      xticks = element.childByClass('x axis').children('text')
+      expect(xticks[xticks.length - 1].getStyle('text-anchor')).to.equal('middle')
+
+      outerScope.$apply ->
+        outerScope.options.axes.x.ticksRotate = 0
+
+      xticks = element.childByClass('x axis').children('text')
+      expect(xticks[xticks.length - 1].getStyle('text-anchor')).to.equal('start')
+
+      outerScope.$apply ->
+        outerScope.options.axes.x.ticksRotate = 45
+
+      xticks = element.childByClass('x axis').children('text')
+      expect(xticks[xticks.length - 1].getStyle('text-anchor')).to.equal('start')
+
+      outerScope.$apply ->
+        outerScope.options.axes.x.ticksRotate = -45
+
+      xticks = element.childByClass('x axis').children('text')
+      expect(xticks[xticks.length - 1].getStyle('text-anchor')).to.equal('end')
+
+    it 'should set text-anchor for y-axis properly if ticksRotate is defined', ->
+
+      outerScope.$apply ->
+        outerScope.options.axes.y.ticksRotate = undefined
+
+      yticks = element.childByClass('y axis').children('text')
+      expect(yticks[yticks.length - 1].getStyle('text-anchor')).to.equal('end')
+
+      outerScope.$apply ->
+        outerScope.options.axes.y.ticksRotate = 0
+
+      yticks = element.childByClass('y axis').children('text')
+      expect(yticks[yticks.length - 1].getStyle('text-anchor')).to.equal('end')
+
+      outerScope.$apply ->
+        outerScope.options.axes.y.ticksRotate = 45
+
+      yticks = element.childByClass('y axis').children('text')
+      expect(yticks[yticks.length - 1].getStyle('text-anchor')).to.equal('end')
+
+      outerScope.$apply ->
+        outerScope.options.axes.y.ticksRotate = -45
+
+      yticks = element.childByClass('y axis').children('text')
+      expect(yticks[yticks.length - 1].getStyle('text-anchor')).to.equal('end')
+
+    it 'should set text-anchor for y2-axis properly if ticksRotate is defined', ->
+
+      outerScope.$apply ->
+        outerScope.options.axes.y2.ticksRotate = undefined
+
+      y2ticks = element.childByClass('y2 axis').children('text')
+      expect(y2ticks[y2ticks.length - 1].getStyle('text-anchor')).to.equal('start')
+
+      outerScope.$apply ->
+        outerScope.options.axes.y2.ticksRotate = 0
+
+      y2ticks = element.childByClass('y2 axis').children('text')
+      expect(y2ticks[y2ticks.length - 1].getStyle('text-anchor')).to.equal('start')
+
+      outerScope.$apply ->
+        outerScope.options.axes.y2.ticksRotate = 45
+
+      y2ticks = element.childByClass('y2 axis').children('text')
+      expect(y2ticks[y2ticks.length - 1].getStyle('text-anchor')).to.equal('start')
+
+      outerScope.$apply ->
+        outerScope.options.axes.y2.ticksRotate = -45
+
+      y2ticks = element.childByClass('y2 axis').children('text')
+      expect(y2ticks[y2ticks.length - 1].getStyle('text-anchor')).to.equal('start')
+
   describe 'min and max', ->
     beforeEach ->
       outerScope.$apply ->
@@ -218,3 +360,27 @@ describe 'scales', ->
       y2ticks = element.childByClass('y2 axis').children('text')
       computedY2Ticks = y2ticks.map (t) -> t.domElement.textContent
       expect(computedY2Ticks).to.eql expectedTicks
+
+    it 'should compute the correct interval for time range function with ticksInterval', ->
+      outerScope.$apply ->
+        outerScope.data = [
+          {x: new Date(2015, 0, 4), value: 1}
+          {x: new Date(2015, 0, 5), value: 1}
+          {x: new Date(2015, 0, 6), value: 1}
+          {x: new Date(2015, 0, 7), value: 1}
+          {x: new Date(2015, 0, 8), value: 1}
+          {x: new Date(2015, 0, 9), value: 1}
+          {x: new Date(2015, 0, 10), value: 1}
+        ]
+        outerScope.options =
+          axes:
+            x: {type: 'date', ticks: d3.time.day, ticksInterval: 3, ticksFormat: '%d.%m.%Y'}
+
+          series: [
+            {y: 'value'}
+          ]
+
+      expectedTicks = ['04.01.2015', '07.01.2015', '10.01.2015']
+      xticks = element.childByClass('x axis').children('text')
+      computedXTicks = xticks.map (t) -> t.domElement.textContent
+      expect(computedXTicks).to.eql(expectedTicks)
