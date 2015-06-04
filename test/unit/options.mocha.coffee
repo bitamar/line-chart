@@ -43,29 +43,20 @@ describe 'options', ->
   describe 'drawLegend', ->
     it 'should set default drawLegend value if undefined or invalid', ->
       o = n3utils.sanitizeOptions()
-      expect(o.drawLegend).to.equal(true)
+      expect(o.drawLegend).to.equal true
 
     it 'should preserve the given drawLegend value if defined and valid', ->
       o = n3utils.sanitizeOptions(drawLegend: false)
-      expect(o.drawLegend).to.equal(false)
+      expect(o.drawLegend).to.equal false
 
   describe 'drawDots', ->
     it 'should set default drawDots value if undefined or invalid', ->
       o = n3utils.sanitizeOptions()
-      expect(o.drawDots).to.equal(true)
+      expect(o.drawDots).to.equal true
 
     it 'should preserve the given drawDots value if defined and valid', ->
       o = n3utils.sanitizeOptions(drawDots: false)
-      expect(o.drawDots).to.equal(false)
-
-  describe 'hideOverflow', ->
-    it 'should set default hideOverflow value if undefined or invalid', ->
-      o = n3utils.sanitizeOptions()
-      expect(o.hideOverflow).to.equal(false)
-
-    it 'should preserve the given hideOverflow value if defined and valid', ->
-      o = n3utils.sanitizeOptions(hideOverflow: true)
-      expect(o.hideOverflow).to.equal(true)
+      expect(o.drawDots).to.equal false
 
   describe 'tooltip', ->
     it 'should set default tooltip.mode if undefined or invalid', ->
@@ -81,33 +72,12 @@ describe 'options', ->
   describe 'linemode', ->
     it 'should add the default tension', ->
       o = n3utils.sanitizeOptions()
-      expect(o.tension).to.equal(0.7)
+      expect(o.tension).to.equal 0.7
 
     it 'should preserve the given tension', ->
       o = n3utils.sanitizeOptions(tension: 0.95)
-      expect(o.tension).to.equal(0.95)
+      expect(o.tension).to.equal 0.95
 
-  describe 'margin', ->
-    it 'should use the default margin', ->
-      o = n3utils.sanitizeOptions()
-      expect(o.margin.top).to.equal(20)
-      expect(o.margin.right).to.equal(50)
-      expect(o.margin.bottom).to.equal(60)
-      expect(o.margin.left).to.equal(50)
-
-    it 'should use the default thumbnail margin', ->
-      o = n3utils.sanitizeOptions(null, 'thumbnail')
-      expect(o.margin.top).to.equal(1)
-      expect(o.margin.right).to.equal(1)
-      expect(o.margin.bottom).to.equal(2)
-      expect(o.margin.left).to.equal(0)
-
-    it 'should parse margins as float', ->
-      o = n3utils.sanitizeOptions({
-        margin: {top: '20.05', left: 40.68 }
-      })
-      expect(o.margin.top).to.equal(20.05)
-      expect(o.margin.left).to.equal(40.68)
 
   describe 'axes', ->
     it 'should return default options when given null or undefined', ->
@@ -136,8 +106,8 @@ describe 'options', ->
         x: {}
         y: {}
       )
-      expect(o.axes.x.type).to.equal('linear')
-      expect(o.axes.y.type).to.equal('linear')
+      expect(o.axes.x.type).to.equal 'linear'
+      expect(o.axes.y.type).to.equal 'linear'
 
     it 'should set default y axis', ->
       o = n3utils.sanitizeOptions(axes:
@@ -201,9 +171,6 @@ describe 'options', ->
         y:
           type: 'linear'
           ticks: [5]
-        y2:
-          type: 'date'
-          ticks: d3.time.minute
 
       computed = n3utils.sanitizeOptions(
         axes:
@@ -211,35 +178,6 @@ describe 'options', ->
             ticks: 2
           y:
             ticks: [5]
-          y2:
-            type: 'date'
-            ticks: d3.time.minute
-      ).axes
-
-      expect(computed).to.eql(expected)
-
-    it 'should pass the ticksInterval property as a number', ->
-      expected =
-        x:
-          type: 'date'
-          key: 'x'
-          ticks: d3.time.minute
-          ticksInterval: 5
-        y:
-          type: 'date'
-          ticks: d3.time.minute
-          ticksInterval: 10
-
-      computed = n3utils.sanitizeOptions(
-        axes:
-          x:
-            type: 'date'
-            ticks: d3.time.minute
-            ticksInterval: 5
-          y:
-            type: 'date'
-            ticks: d3.time.minute
-            ticksInterval: '10'
       ).axes
 
       expect(computed).to.eql(expected)
@@ -287,84 +225,6 @@ describe 'options', ->
 
       expect(computed).to.eql(expected)
       expect($log.warn.callCount).to.equal(1)
-
-    it 'should parse extrema options as floats', inject ($log) ->
-      sinon.stub($log, 'warn', ->)
-
-      computed = n3utils.sanitizeOptions(
-        axes:
-          y:
-            min: '13.421'
-            max: 15.23
-      ).axes
-
-      expect(computed.y.min).to.equal(13.421)
-      expect(computed.y.max).to.equal(15.23)
-
-    it 'should create a formatter function when ticks format is defined', ->
-      computed = n3utils.sanitizeOptions(
-        axes:
-          x:
-            ticksFormat: '.2f'
-      ).axes
-
-      expect(computed.x.ticksFormatter(2)).to.equal('2.00')
-
-    it 'should create a time formatter function when ticks format is defined on date axis', ->
-      computed = n3utils.sanitizeOptions(
-        axes:
-          x:
-            type: 'date'
-            ticksFormat: "%Y-%m-%d"
-      ).axes
-
-      expect(computed.x.ticksFormatter(new Date(2015,0,1))).to.equal('2015-01-01')
-
-    it 'should use the ticks formatter function when no tooltip format is defined', ->
-      computed = n3utils.sanitizeOptions(
-        axes:
-          x:
-            ticksFormat: '.2f'
-      ).axes
-
-      expect(computed.x.tooltipFormatter(2)).to.equal('2.00')
-
-    it 'should create a formatter function when tooltip format is defined', ->
-      computed = n3utils.sanitizeOptions(
-        axes:
-          x:
-            tooltipFormat: '.2f'
-      ).axes
-
-      expect(computed.x.tooltipFormatter(2)).to.equal('2.00')
-
-    it 'should create a time formatter function when tooltip format is defined on date axis', ->
-      computed = n3utils.sanitizeOptions(
-        axes:
-          x:
-            type: 'date'
-            tooltipFormat: "%Y-%m-%d"
-      ).axes
-
-      expect(computed.x.tooltipFormatter(new Date(2015,0,1))).to.equal('2015-01-01')
-
-    it 'should parse the ticksRotate as floats', ->
-      computed = n3utils.sanitizeOptions(
-        axes:
-          x:
-            type: 'date'
-            ticksRotate: 20.05,
-          y:
-            type: 'linear'
-            ticksRotate: '40.25'
-          y2:
-            type: 'linear'
-            ticksRotate: -45
-      ).axes
-
-      expect(computed.x.ticksRotate).to.equal(20.05)
-      expect(computed.y.ticksRotate).to.equal(40.25)
-      expect(computed.y2.ticksRotate).to.equal(-45.00)
 
   describe 'series', ->
     it 'should throw an error if twice the same id is found', ->

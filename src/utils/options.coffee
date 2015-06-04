@@ -3,7 +3,6 @@
           tooltip: {mode: 'scrubber'}
           lineMode: 'linear'
           tension: 0.7
-          margin: this.getDefaultMargins()
           axes: {
             x: {type: 'linear', key: 'x'}
             y: {type: 'linear'}
@@ -13,53 +12,32 @@
           drawDots: true
           stacks: []
           columnsHGap: 5
-          hideOverflow: false
         }
 
       sanitizeOptions: (options, mode) ->
-        options ?= {}
+        return this.getDefaultOptions() unless options?
 
         if mode is 'thumbnail'
           options.drawLegend = false
           options.drawDots = false
           options.tooltip = {mode: 'none', interpolate: false}
 
-        # Parse and sanitize the options
         options.series = this.sanitizeSeriesOptions(options.series)
         options.stacks = this.sanitizeSeriesStacks(options.stacks, options.series)
+
         options.axes = this.sanitizeAxes(options.axes, this.haveSecondYAxis(options.series))
-        options.tooltip = this.sanitizeTooltip(options.tooltip)
-        options.margin = this.sanitizeMargins(options.margin)
-        
-        options.lineMode or= this.getDefaultOptions().lineMode
-        options.tension = if /^\d+(\.\d+)?$/.test(options.tension) then options.tension \
-          else this.getDefaultOptions().tension
-        
+
+        options.lineMode or= 'linear'
+        options.tension = if /^\d+(\.\d+)?$/.test(options.tension) then options.tension else 0.7
+
+        this.sanitizeTooltip(options)
+
         options.drawLegend = options.drawLegend isnt false
         options.drawDots = options.drawDots isnt false
+
         options.columnsHGap = 5 unless angular.isNumber(options.columnsHGap)
-        options.hideOverflow = options.hideOverflow or false
-
-        defaultMargin = if mode is 'thumbnail' then this.getDefaultThumbnailMargins() \
-          else this.getDefaultMargins()
-
-        # Use default values where no options are defined
-        options.series = angular.extend(this.getDefaultOptions().series, options.series)
-        options.axes = angular.extend(this.getDefaultOptions().axes, options.axes)
-        options.tooltip = angular.extend(this.getDefaultOptions().tooltip, options.tooltip)
-        options.margin = angular.extend(defaultMargin, options.margin)
 
         return options
-
-      sanitizeMargins: (options) ->
-        attrs = ['top', 'right', 'bottom', 'left']
-        margin = {}
-
-        for opt, value of options
-          if opt in attrs
-            margin[opt] = parseFloat(value)
-
-        return margin
 
       sanitizeSeriesStacks: (stacks, series) ->
         return [] unless stacks?
@@ -78,21 +56,20 @@
         return stacks
 
       sanitizeTooltip: (options) ->
-        if !options
-          return {mode: 'scrubber'}
+        if !options.tooltip
+          options.tooltip = {mode: 'scrubber'}
+          return
 
-        if options.mode not in ['none', 'axes', 'scrubber']
-          options.mode = 'scrubber'
+        if options.tooltip.mode not in ['none', 'axes', 'scrubber']
+          options.tooltip.mode = 'scrubber'
 
-        if options.mode is 'scrubber'
-          delete options.interpolate
+        if options.tooltip.mode is 'scrubber'
+          delete options.tooltip.interpolate
         else
-          options.interpolate = !!options.interpolate
+          options.tooltip.interpolate = !!options.tooltip.interpolate
 
-        if options.mode is 'scrubber' and options.interpolate
+        if options.tooltip.mode is 'scrubber' and options.tooltip.interpolate
           throw new Error('Interpolation is not supported for scrubber tooltip mode.')
-
-        return options
 
       sanitizeSeriesOptions: (options) ->
         return [] unless options?
@@ -163,7 +140,7 @@
       getSanitizedNumber: (value) ->
         return undefined unless value?
 
-        number = parseFloat(value)
+        number = parseInt(value, 10)
 
         if isNaN(number)
           $log.warn("Invalid extremum value : #{value}, deleting it.")
@@ -175,43 +152,6 @@
         return {type: 'linear'} unless options?
 
         options.type or= 'linear'
-
-        if options.ticksRotate?
-          options.ticksRotate = this.getSanitizedNumber(options.ticksRotate)
-
-        # labelFunction is deprecated and will be remvoed in 2.x
-        # please use ticksFormatter instead
-        if options.labelFunction?
-          options.ticksFormatter = options.labelFunction
-
-        # String to format tick values
-        if options.ticksFormat?
-
-          if options.type is 'date'
-            # Use d3.time.format as formatter
-            options.ticksFormatter = d3.time.format(options.ticksFormat)
-            
-          else
-            # Use d3.format as formatter
-            options.ticksFormatter = d3.format(options.ticksFormat)
-
-          # use the ticksFormatter per default
-          # if no tooltip format or formatter is defined
-          options.tooltipFormatter ?= options.ticksFormatter
-
-        # String to format tooltip values
-        if options.tooltipFormat?
-
-          if options.type is 'date'
-            # Use d3.time.format as formatter
-            options.tooltipFormatter = d3.time.format(options.tooltipFormat)
-            
-          else
-            # Use d3.format as formatter
-            options.tooltipFormatter = d3.format(options.tooltipFormat)
-        
-        if options.ticksInterval?
-          options.ticksInterval = this.getSanitizedNumber(options.ticksInterval)
 
         this.sanitizeExtrema(options)
 

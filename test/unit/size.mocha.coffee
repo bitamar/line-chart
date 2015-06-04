@@ -16,29 +16,23 @@ describe 'size', ->
     sinon.stub(innerScope, 'update', ->)
     sinon.spy(innerScope, 'redraw')
 
-  it 'should call redraw when window is resized ', inject (pepito, fakeWindow, $timeout) ->
-    {element, outerScope} = pepito.directive("""
-      <div>
-        <linechart data='data' options='options'></linechart>
-      </div>
-      """,
-      (element) ->
-        innerScope = element.children()[0].aElement.isolateScope()
-      )
+  it 'should redraw when $window resize', inject ($window) ->
+    e = document.createEvent('HTMLEvents')
+    e.initEvent 'resize', true, false
+    $window.dispatchEvent e
 
-    spy = sinon.spy(innerScope, 'redraw')
+  it 'should pass the new dimensions to update when $window is resized ', inject ($window) ->
+    sinon.stub innerScope, 'updateDimensions', (d) ->
+      d.width = 120
+      d.height = 50
 
-    expect(spy.callCount).to.equal(0)
-
-    # Trigger a resize event
-    fakeWindow.resize()
-    outerScope.$digest()
-    $timeout.flush()
-
-    expect(spy.callCount).to.equal(1)
+    # This could be better...
+    e = document.createEvent('HTMLEvents')
+    e.initEvent 'resize', true, false
+    $window.dispatchEvent e
 
   describe 'computation method', ->
-    it 'should have default size', inject (pepito, n3utils) ->
+    it 'should have default size', inject (pepito) ->
       {element, outerScope} = pepito.directive("""
       <div>
         <linechart data='data' options='options'></linechart>
@@ -50,19 +44,24 @@ describe 'size', ->
         sinon.spy innerScope, 'redraw'
       )
 
-      svgElem = element.childByClass('chart').children()[0].domElement
-      expect(svgElem.width.baseVal.value).to.equal(900)
-      expect(svgElem.height.baseVal.value).to.equal(500)
+      innerScope = element.childByClass('chart').aElement.isolateScope()
+      expect(innerScope.update.args[0][0]).to.eql
+        top: 20
+        right: 50
+        bottom: 60
+        left: 50
+        width: 900
+        height: 500
 
     it 'should consider forced dimensions', inject (pepito, n3utils) ->
-      {element, outerScope} = pepito.directive("""
-      <div id="toto">
-        <linechart width="234" height="556" data='data' options='options'></linechart>
-      </div>
+      {element, outerScope, innerScope} = pepito.directive("""
+        <div id="toto">
+          <linechart width="234" height="556" data='data' options='options'></linechart>
+        </div>
       """,
       (element) ->
         innerScope = element.children()[0].aElement.isolateScope()
-        sinon.spy innerScope, 'update'
+        sinon.stub innerScope, 'update', ->
         sinon.spy innerScope, 'redraw'
 
         sinon.stub n3utils, 'getPixelCssProp', (element, property) ->
@@ -81,11 +80,18 @@ describe 'size', ->
           }[property]
       )
 
+      innerScope = element.children()[0].aElement.isolateScope()
+
       outerScope.$digest()
 
-      svgElem = element.childByClass('chart').children()[0].domElement
-      expect(svgElem.width.baseVal.value).to.equal(174)
-      expect(svgElem.height.baseVal.value).to.equal(496)
+      expect(innerScope.update.args[1][0]).to.eql
+        top: 20
+        right: 50
+        bottom: 60
+        left: 50
+        width: 174
+        height: 496
+
 
     it 'should detect parent\'s top padding', inject (pepito, n3utils) ->
       {element, outerScope} = pepito.directive("""
@@ -95,7 +101,7 @@ describe 'size', ->
       """,
       (element) ->
         innerScope = element.children()[0].aElement.isolateScope()
-        sinon.spy innerScope, 'update'
+        sinon.stub innerScope, 'update', ->
         sinon.spy innerScope, 'redraw'
 
         sinon.stub n3utils, 'getPixelCssProp', (element, property) ->
@@ -114,9 +120,14 @@ describe 'size', ->
           }[property]
       )
 
+      innerScope = element.children()[0].aElement.isolateScope()
+
       outerScope.$digest()
-      
-      svgElem = element.childByClass('chart').children()[0].domElement
-      expect(svgElem.width.baseVal.value).to.equal(840)
-      expect(svgElem.height.baseVal.value).to.equal(440)
+      expect(innerScope.update.args[1][0]).to.eql
+        top: 20
+        right: 50
+        bottom: 60
+        left: 50
+        width: 840
+        height: 440
 

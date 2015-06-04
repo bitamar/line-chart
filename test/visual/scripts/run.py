@@ -141,19 +141,13 @@ def get_content(path):
 
 def generate_test_files(dirs, project_path, template_path):
   info('Creating test files')
-
-  files = []
-
   with cd('.tmp'):
     for test in dirs:
       name = generate_test_file(test, project_path, template_path + "/template.html")
-      files.append(name)
       generate_phantom_file(test, project_path, template_path + "/capture.js")
       debug("  created '" + name + "' test case")
 
   debug('...done')
-
-  return files
 
 
 def generate_test_file(test, project_path, template_path):
@@ -175,7 +169,7 @@ def generate_test_file(test, project_path, template_path):
 
 
 def generate_global_file(dirs, project_path, template_path):
-  info('Creating global test file (./test/visual/.tmp/global.html)')
+  info('Creating global test file')
   examples = gather_examples(dirs, project_path)
 
   with cd('scripts'):
@@ -229,23 +223,21 @@ def generate_phantom_file(test, project_path, template_path):
   return name
 
 
-def capture_tests(project_path, files):
+def capture_tests(project_path):
   with cd('.tmp'):
-    # files = os.listdir('.')
+    files = os.listdir('.')
 
     info('Capturing images')
-    html_files = [f for f in files]
+    html_files = [f for f in files if os.path.splitext(f)[1] == '.html']
 
     for file in html_files:
-      debug('Capturing ' + file + '...')
-
-      img = file + '.png'
-      js = file + '.js'
+      img = file.split('.')[0] + '.png'
+      js = file.split('.')[0] + '.js'
 
       subprocess.call([
         project_path + 'node_modules/phantomjs/bin/phantomjs',
         js,
-        file + '.html',
+        file,
         img
       ])
 
@@ -394,15 +386,13 @@ with cd(visual):
     dirs = filter(lambda d: os.path.basename(d) == args.only, dirs)
 
   create_temp_dir()
-  test_files = generate_test_files(dirs, project_path, os.path.abspath("scripts"))
-
-  if not args.only:
-    generate_global_file(dirs, project_path, os.path.abspath("scripts"))
+  generate_test_files(dirs, project_path, os.path.abspath("scripts"))
+  generate_global_file(dirs, project_path, os.path.abspath("scripts"))
 
   if args.no_capture:
     sys.exit(0)
 
-  capture_tests(project_path, test_files)
+  capture_tests(project_path)
 
   if args.update:
     copy_computed_to_tests(dirs)

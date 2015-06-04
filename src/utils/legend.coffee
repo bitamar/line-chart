@@ -43,31 +43,20 @@
 
         return widths
 
-      drawLegend: (svg, series, dimensions, handlers, dispatch) ->
+      drawLegend: (svg, series, dimensions, handlers) ->
         that = this
         legend = svg.append('g').attr('class', 'legend')
 
         d = 16
-
         svg.select('defs').append('svg:clipPath')
           .attr('id', 'legend-clip')
           .append('circle').attr('r', d/2)
 
-        groups = legend.selectAll('.legendItem')
+        item = legend.selectAll('.legendItem')
           .data(series)
 
-        groups.enter().append('g')
-          .on('click', (s, i) ->
-            visibility = !(s.visible isnt false)
-            dispatch.toggle(s, i, visibility)
-            handlers.onSeriesVisibilityChange?({
-              series: s,
-              index: i,
-              newVisibility: visibility
-            })
-          )
-        
-        groups.attr(
+        items = item.enter().append('g')
+            .attr(
               'class': (s, i) -> "legendItem series_#{i} #{s.axis}"
               'opacity': (s, i) ->
                 if s.visible is false
@@ -76,63 +65,61 @@
 
                 return '1'
             )
-          .each (s) ->
-            item = d3.select(this)
-            item.append('circle')
-              .attr(
-                'fill': s.color
-                'stroke': s.color
-                'stroke-width': '2px'
-                'r': d/2
-              )
 
-            item.append('path')
-              .attr(
-                'clip-path': 'url(#legend-clip)'
-                'fill-opacity': if s.type in ['area', 'column'] then '1' else '0'
-                'fill': 'white'
-                'stroke': 'white'
-                'stroke-width': '2px'
-                'd': that.getLegendItemPath(s, d, d)
-              )
+        item.on('click', (s, i) ->
+          handlers.onSeriesVisibilityChange?({
+            series: s,
+            index: i,
+            newVisibility: !(s.visible isnt false)
+          })
+        )
 
-            item.append('circle')
-              .attr(
-                'fill-opacity': 0
-                'stroke': s.color
-                'stroke-width': '2px'
-                'r': d/2
-              )
+        item.append('circle')
+          .attr(
+            'fill': (s) -> s.color
+            'stroke': (s) -> s.color
+            'stroke-width': '2px'
+            'r': d/2
+          )
 
-            item.append('text')
-              .attr(
-                'class': (d, i) -> "legendText series_#{i}"
-                'font-family': 'Courier'
-                'font-size': 12.5
-                'transform': 'translate(13, 4)'
-                'text-rendering': 'geometric-precision'
-              )
-              .text(s.label || s.y)
+        item.append('path')
+          .attr(
+            'clip-path': 'url(#legend-clip)'
+            'fill-opacity': (s) -> if s.type in ['area', 'column'] then '1' else '0'
+            'fill': 'white'
+            'stroke': 'white'
+            'stroke-width': '2px'
+            'd': (s) -> that.getLegendItemPath(s, d, d)
+          )
 
-        # Translate every legend g node to its position
-        translateLegends = () ->
-          [left, right] = that.computeLegendLayout(svg, series, dimensions)
-          groups
-            .attr(
-              'transform': (s, i) ->
-                if s.axis is 'y'
-                  return "translate(#{left.shift()},#{dimensions.height-40})"
-                else
-                  return "translate(#{right.shift()},#{dimensions.height-40})"
-            )
+        item.append('circle')
+          .attr(
+            'fill-opacity': 0
+            'stroke': (s) -> s.color
+            'stroke-width': '2px'
+            'r': d/2
+          )
 
-        # We need to call this once, so the
-        # legend text does not blink on every update
-        translateLegends()
 
-        # now once again,
-        # to make sure, text width gets really! computed properly
-        setTimeout(translateLegends, 0)
+        item.append('text')
+          .attr(
+            'class': (d, i) -> "legendText series_#{i}"
+            'font-family': 'Courier'
+            'font-size': 12.5
+            'transform': 'translate(13, 4)'
+            'text-rendering': 'geometric-precision'
+          )
+          .text (s) -> s.label || s.y
+
+
+        [left, right] = this.computeLegendLayout(svg, series, dimensions)
+        items.attr(
+          'transform': (s, i) ->
+            if s.axis is 'y'
+              return "translate(#{left.shift()},#{dimensions.height-40})"
+            else
+              return "translate(#{right.shift()},#{dimensions.height-40})"
+        )
 
         return this
 

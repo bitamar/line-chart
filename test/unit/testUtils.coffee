@@ -72,18 +72,6 @@ utils.factory 'pepito', ($compile, $rootScope, fakeMouse) ->
       }
   }
 
-utils.factory 'fakeWindow', ($window) ->
-
-  e = document.createEvent('UIEvent')
-
-  return {
-    # We could add cool stuff here, e.g resize
-    # to a dimension 800x400
-    resize: () ->
-      e.initEvent 'resize', true, false
-      $window.dispatchEvent e
-  }
-
 utils.factory 'fakeMouse', ->
   defaults =
     alt : false
@@ -152,7 +140,6 @@ utils.factory 'fakeMouse', ->
 
     hoverIn: (element) -> bubbleUp(element, 'mouseover')
     hoverOut: (element) -> bubbleUp(element, 'mouseout')
-    mouseOver: (element) -> dispatch(element, 'mouseover')
     mouseMove: (element) -> dispatch(element, 'mousemove')
   }
 

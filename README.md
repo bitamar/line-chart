@@ -1,4 +1,4 @@
-# n3-line-chart [![Build Status](https://travis-ci.org/n3-charts/line-chart.svg?branch=master)](https://travis-ci.org/n3-charts/line-chart) [![Coverage Status](https://coveralls.io/repos/n3-charts/line-chart/badge.svg?branch=master&pouet=tut)](https://coveralls.io/r/n3-charts/line-chart?branch=master) [![Join the chat at https://gitter.im/n3-charts/line-chart](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/n3-charts/line-chart)
+# n3-line-chart [![Build Status](https://travis-ci.org/n3-charts/line-chart.svg?branch=master)](https://travis-ci.org/n3-charts/line-chart)
 
 ![](https://raw.githubusercontent.com/n3-charts/line-chart/gh-pages/assets/images/n3-charts.png)
 
@@ -47,12 +47,9 @@ Options must be an object with a series array. It should look like this :
 ```js
 $scope.options = {
   axes: {
-    x: {key: 'x', ticksFormat: '.2f', type: 'linear', min: 0, max: 10, ticks: 2},
+    x: {key: 'x', labelFunction: function(value) {return value;}, type: 'linear', min: 0, max: 10, ticks: 2},
     y: {type: 'linear', min: 0, max: 1, ticks: 5},
     y2: {type: 'linear', min: 0, max: 1, ticks: [1, 2, 3, 4]}
-  },
-  margin: {
-    left: 100
   },
   series: [
     {y: 'value', color: 'steelblue', thickness: '2px', type: 'area', striped: true, label: 'Pouet'},
@@ -63,7 +60,6 @@ $scope.options = {
   tooltip: {mode: 'scrubber', formatter: function(x, y, series) {return 'pouet';}},
   drawLegend: true,
   drawDots: true,
-  hideOverflow: false,
   columnsHGap: 5
 }
 ```
@@ -72,15 +68,10 @@ The `axes` keys can be undefined. Otherwise, it can contain an `x̀` key with th
 
  + `key` : optional, defines where the chart will look for abscissas values in the data (default is 'x').
  + `type` : optional, can be either 'date' or 'linear' (default is 'linear'). If set to 'date', the chart will expect Date objects as abscissas. No transformation is done by the chart itself, so the behavior is basically D3.js' time scale's.
- + `ticksFormat` : optional, format string, that is parsed with d3.format (d3.time.format for type 'date') to format the axis' ticklabels. Default behavior: the raw value is used unformatted
- + `ticksFormatter` : optional, function that allows to format the axis' ticklabels; must be a function that accepts a single argument and returns a string.
- + `tooltipFormat` : optional, format string, that is parsed with d3.format (d3.time.format for type 'date') to format the axis' tooltip values (tooltip mode 'axes'). Default behavior: uses the same format as `ticksFormat`
- + `tooltipFormatter` : optional, function that allows to format the axis' tooltip values (tooltip mode 'axes'); must be a function that accepts a single argument and returns a string.
- + `ticksRotate` : optional, defines the rotation of the tick labels in degrees (positive values rotate clockwise, and negative vales counter clockwise)
+ + `labelFunction` : optional, allows to format the axis' ticklabels. Must be a function that accepts a single argument and returns a string.
  + `min` : optional, forces the axis minimum value (default is computed from data)
  + `max` : optional, forces the axis maximum value (default is computed from data)
  + `ticks` : optional, configures the axis' ticks (can be either a number or an array, more on this [here][3])
- + `ticksInterval` : optional, configures the step size of tick values if `ticks` is set to a range or time range function (e.g. d3.time.minute), more on this [here][4]
 
 It can also contain, according to your series configuration, a `y` and a `y2` key with the following properties :
 
@@ -111,14 +102,6 @@ The `tooltip` must be an object which contains the following properties :
  + `interpolate` : can be either `true`or `false`. Default is `false`. Will be ignored if the tooltip's mode is not `axes`.
  + `formatter` : optional, allows to catch the tooltip before it gets rendered. Must be a function that takes `x`, `y` and `series` as arguments and returns a string. Ignored when mode is not `scrubber`.
 
-##### Margin
-With the `margin` option one can customize the following margins of the chart :
-
-+ top
-+ left
-+ bottom
-+ right
-
 ##### Optional stuff
 Additionally, you can set `lineMode` to a value between these :
 
@@ -142,8 +125,6 @@ The `drawLegend` and `drawDots` are optional. They respectively enable/disable t
 
 The `columnsHGap` is optional (default is `5`). Sets the space between two columns. If you haven't any column series on your chart but are wondering why this option doesn't do anything, please don't send me an email.
 
-If `hideOverflow` is set to `true`, the series will be clipped to the chart area to avoid displaying negative values for certain `lineModes` (e.g. `cardinal`). See [issue #120][7] about that.
-
 #### Mode
 The mode can be set to 'thumbnail' (default is empty string). If so, the chart will take as much space as it can, and it will only display the series. No axes, no legend, no tooltips. Furthermore, the lines or areas will be drawn without dots. This is convenient for sparklines.
 
@@ -153,62 +134,6 @@ This is more a hack. The chart usually tries to infer its own dimensions regardi
 ```html
 <linechart width="150" height="100"></linechart>
 ```
-
-#### Custom events
-We can attach event handlers for *click*, *hover*, *focus* and *toggle* events of the chart.
-
-##### Click
-The event handler for the *click* event get's triggered when the mouse clicks on a dot or column of the chart in tooltip modes *none* and *axes*.
-
-```js
-$scope.onClick = function(d, i){
-  console.log(d, i);
-}
-```
-
-```html
-<linechart data="data" options="options" on-click="onClick"></linechart>
-```
-
-##### Hover
-The event handler for the *hover* event get's triggered when the mouse hovers over a dot or column of the chart in tooltip modes *none* and *axes*.
-
-```js
-$scope.onHover = function(d, i){
-  console.log(d, i);
-}
-```
-
-```html
-<linechart data="data" options="options" on-hover="onHover"></linechart>
-```
-
-##### Focus
-The event handler for a *focus* event get's triggered when the mouse hovers over the chart in tooltip mode *scrubber*.
-
-```js
-$scope.onFocus = function(d, i, position){
-  console.log(d, i, position);
-}
-```
-
-```html
-<linechart data="data" options="options" on-focus="onFocus"></linechart>
-```
-
-##### Toggle
-The event handler for a *toggle* event get's triggered when a series changes its visibility.
-
-```js
-$scope.onToggle = function(d, i, visible){
-  console.log(d, i, visible);
-}
-```
-
-```html
-<linechart data="data" options="options" on-toggle="onToggle"></linechart>
-```
-
 
 ### Building
 Fetch the repo :
@@ -244,8 +169,8 @@ $ grunt travis
 ### Contributing
 You're welcome to submit issues and PRs. However, please make sure :
 
-- to link a CodePen/Plunker/JSFiddle with your issue (you can generate CodePens from the [examples page][5], clickhover any example and a link will appear in the example's top right corner)
-- to add tests to your pull requests (otherwise, a [ruthless admin will inevitably close your pull request][6])
+- to link a plunker with your issue ([here's one to start from](http://plnkr.co/edit/2hqP1VfrsmrYydezW35G?p=preview))
+- to add tests to your pull requests
 
 
 ### Testing
@@ -255,7 +180,3 @@ It has a good coverage rate (above 95%), let's keep it this way.
   [1]: https://github.com/mbostock/d3/wiki/SVG-Shapes#wiki-line_interpolate
   [2]: https://github.com/n3-charts/line-chart/issues/44
   [3]: http://stackoverflow.com/a/11661725
-  [4]: https://github.com/mbostock/d3/wiki/Time-Scales#ticks
-  [5]: http://n3-charts.github.io/line-chart/#/examples
-  [6]: http://ih0.redbubble.net/image.41361934.7038/fc,220x200,white.jpg
-  [7]: https://github.com/n3-charts/line-chart/issues/120

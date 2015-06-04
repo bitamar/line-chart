@@ -54,24 +54,27 @@
             if !!conditions.all
 
               if !!conditions.x
-                svg.append('g')
-                  .attr('class', 'x axis')
-                  .attr('transform', 'translate(0,' + height + ')')
-                  .call(xAxis)
-                  .call(style)
+                style(
+                  svg.append('g')
+                    .attr('class', 'x axis')
+                    .attr('transform', 'translate(0,' + height + ')')
+                    .call(xAxis)
+                )
 
               if !!conditions.y
-                svg.append('g')
-                  .attr('class', 'y axis')
-                  .call(yAxis)
-                  .call(style)
+                style(
+                  svg.append('g')
+                    .attr('class', 'y axis')
+                    .call(yAxis)
+                )
 
               if createY2Axis and !!conditions.y2
-                svg.append('g')
-                  .attr('class', 'y2 axis')
-                  .attr('transform', 'translate(' + width + ', 0)')
-                  .call(y2Axis)
-                  .call(style)
+                style(
+                  svg.append('g')
+                    .attr('class', 'y2 axis')
+                    .attr('transform', 'translate(' + width + ', 0)')
+                    .call(y2Axis)
+                )
 
             return {
               xScale: x
@@ -94,57 +97,29 @@
         axis = d3.svg.axis()
           .scale(scale)
           .orient(sides[key])
-          .tickFormat(o?.ticksFormatter)
+          .tickFormat(o?.labelFunction)
 
         return axis unless o?
 
-        # ticks can be either an array of tick values
-        if angular.isArray(o.ticks)
-          axis.tickValues(o.ticks)
-        
-        # or a number of ticks (approximately)
-        else if angular.isNumber(o.ticks)
-          axis.ticks(o.ticks)
-        
-        # or a range function e.g. d3.time.minute
-        else if angular.isFunction(o.ticks)
-          axis.ticks(o.ticks, o.ticksInterval)
+        axis.ticks(o.ticks) if angular.isNumber(o.ticks)
+        axis.tickValues(o.ticks) if angular.isArray(o.ticks)
 
         return axis
 
       setScalesDomain: (scales, data, series, svg, options) ->
         this.setXScale(scales.xScale, data, series, options.axes)
 
-        axis = svg.selectAll('.x.axis')
-          .call(scales.xAxis)
-        
-        if options.axes.x.ticksRotate?
-          axis.selectAll('.tick>text')
-            .attr('dy', null)
-            .attr('transform', 'translate(0,5) rotate(' + options.axes.x.ticksRotate + ' 0,6)')
-            .style('text-anchor', if options.axes.x.ticksRotate >= 0 then 'start' else 'end')
+        svg.selectAll('.x.axis').call(scales.xAxis)
 
         if (series.filter (s) -> s.axis is 'y' and s.visible isnt false).length > 0
           yDomain = this.getVerticalDomain(options, data, series, 'y')
           scales.yScale.domain(yDomain).nice()
-          axis = svg.selectAll('.y.axis')
-            .call(scales.yAxis)
-          
-          if options.axes.y.ticksRotate?
-            axis.selectAll('.tick>text')
-              .attr('transform', 'rotate(' + options.axes.y.ticksRotate + ' -6,0)')
-              .style('text-anchor', 'end')
+          svg.selectAll('.y.axis').call(scales.yAxis)
 
         if (series.filter (s) -> s.axis is 'y2' and s.visible isnt false).length > 0
           y2Domain = this.getVerticalDomain(options, data, series, 'y2')
           scales.y2Scale.domain(y2Domain).nice()
-          axis = svg.selectAll('.y2.axis')
-            .call(scales.y2Axis)
-          
-          if options.axes.y2.ticksRotate?
-            axis.selectAll('.tick>text')
-              .attr('transform', 'rotate(' + options.axes.y2.ticksRotate + ' 6,0)')
-              .style('text-anchor', 'start')
+          svg.selectAll('.y2.axis').call(scales.y2Axis)
 
 
       getVerticalDomain: (options, data, series, key) ->

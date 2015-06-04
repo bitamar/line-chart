@@ -56,29 +56,31 @@ describe 'legend', ->
     expect(spy.callCount).to.equal(2)
 
   it 'should create a clipping path for legend items', ->
-    chart = element.childByClass('chart')
-    clip = chart.child('defs').children()[1]
-    expect(clip.getAttribute('id')).to.equal('legend-clip')
-    expect(clip.domElement.tagName).to.equal('clipPath')
-    expect(clip.innerHTML()).to.equal('<circle r="8"></circle>')
+    patterns = element.childByClass('patterns')
+    expect(patterns.children().length).to.equal 1
+    pattern = patterns.children()[0]
+    expect(pattern.getAttribute('id')).to.equal 'legend-clip'
+    expect(pattern.domElement.tagName).to.equal 'clipPath'
+    expect(pattern.innerHTML()).to.equal '<circle r="8"></circle>'
 
   it 'should create legend elements', inject (fakeMouse) ->
     legendGroup = element.childByClass('legend')
-    expect(legendGroup.children().length).to.equal(2)
+    expect(legendGroup.children().length).to.equal 2
     l_0 = legendGroup.children()[0].domElement
-    expect(l_0.getAttribute('class')).to.equal('legendItem series_0 y')
-    expect(l_0.childNodes[0].nodeName).to.equal('circle')
-    expect(l_0.childNodes[0].getAttribute('fill')).to.equal('#4682b4')
-    expect(l_0.childNodes[1].getAttribute('clip-path')).to.equal('url(#legend-clip)')
+    expect(l_0.getAttribute('class')).to.equal 'legendItem series_0 y'
+    expect(l_0.childNodes[0].nodeName).to.equal 'circle'
+    expect(l_0.childNodes[0].getAttribute('fill')).to.equal '#4682b4'
+    expect(l_0.childNodes[1].getAttribute('clip-path')).to.equal 'url(#legend-clip)'
+
+    fakeMouse.clickOn(l_0.childNodes[0])
 
     fn = (cl) -> element.childByClass(cl).getStyle('display')
 
-    element.childrenByClass('legendItem')[0].click()
     expect(fn('lineGroup series_0')).to.equal('none')
     expect(fn('dotGroup series_0')).to.equal('none')
     expect(element.childrenByClass('legendItem')[0].getAttribute('opacity')).to.equal('0.2')
 
-    element.childrenByClass('legendItem')[0].click()
+    fakeMouse.clickOn(l_0.childNodes[0])
     expect(fn('lineGroup series_0')).to.equal('')
     expect(fn('dotGroup series_0')).to.equal('')
     expect(element.childrenByClass('legendItem')[0].getAttribute('opacity')).to.equal('1')

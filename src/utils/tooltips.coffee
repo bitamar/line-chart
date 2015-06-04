@@ -10,8 +10,6 @@
           }
 
       styleTooltip: (d3TextElement) ->
-        # This needs to be defined as .attr() otherwise
-        # FF will not render and compute it properly
         return d3TextElement.attr({
           'font-family': 'monospace'
           'font-size': 10
@@ -82,18 +80,18 @@
             )
           )
 
-      onMouseOver: (svg, event, axesOptions) ->
-        this.updateXTooltip(svg, event, axesOptions.x)
+      onMouseOver: (svg, event) ->
+        this.updateXTooltip(svg, event)
 
         if event.series.axis is 'y2'
-          this.updateY2Tooltip(svg, event, axesOptions.y2)
+          this.updateY2Tooltip(svg, event)
         else
-          this.updateYTooltip(svg, event, axesOptions.y)
+          this.updateYTooltip(svg, event)
 
       onMouseOut: (svg) ->
         this.hideTooltips(svg)
 
-      updateXTooltip: (svg, {x, datum, series}, xAxisOptions) ->
+      updateXTooltip: (svg, {x, datum, series}) ->
         xTooltip = svg.select("#xTooltip")
 
         xTooltip.transition()
@@ -102,18 +100,13 @@
             'transform': "translate(#{x},0)"
           )
 
-        _f = xAxisOptions.tooltipFormatter
-        textX = if _f then _f(datum.x) else datum.x
+        textX = datum.x
 
         label = xTooltip.select('text')
         label.text(textX)
 
-        # Use a coloring function if defined, else use a color string value
-        color = if angular.isFunction(series.color) \
-          then series.color(datum, series.values.indexOf(datum)) else series.color
-
         xTooltip.select('path')
-          .style('fill', color)
+          .attr('fill', series.color)
           .attr('d', this.getXTooltipPath(label[0][0]))
 
       getXTooltipPath: (textElement) ->
@@ -130,7 +123,7 @@
           'l' + (-p) + ' ' + h/4 + ' ' +
           'l' + (-w/2 + p) + ' 0z'
 
-      updateYTooltip: (svg, {y, datum, series}, yAxisOptions) ->
+      updateYTooltip: (svg, {y, datum, series}) ->
         yTooltip = svg.select("#yTooltip")
         yTooltip.transition()
           .attr(
@@ -138,11 +131,8 @@
             'transform': "translate(0, #{y})"
           )
 
-        _f = yAxisOptions.tooltipFormatter
-        textY = if _f then _f(datum.y) else datum.y
-
         label = yTooltip.select('text')
-        label.text(textY)
+        label.text(datum.y)
         w = this.getTextBBox(label[0][0]).width + 5
 
         label.attr(
@@ -150,37 +140,26 @@
           'width': w
         )
 
-        # Use a coloring function if defined, else use a color string value
-        color = if angular.isFunction(series.color) \
-          then series.color(datum, series.values.indexOf(datum)) else series.color
-
         yTooltip.select('path')
-          .style('fill', color)
+          .attr('fill', series.color)
           .attr('d', this.getYTooltipPath(w))
 
-      updateY2Tooltip: (svg, {y, datum, series}, yAxisOptions) ->
+      updateY2Tooltip: (svg, {y, datum, series}) ->
         y2Tooltip = svg.select("#y2Tooltip")
         y2Tooltip.transition()
           .attr('opacity', 1.0)
 
-        _f = yAxisOptions.tooltipFormatter
-        textY = if _f then _f(datum.y) else datum.y
-
         label = y2Tooltip.select('text')
-        label.text(textY)
+        label.text(datum.y)
         w = this.getTextBBox(label[0][0]).width + 5
         label.attr(
           'transform': 'translate(7, ' + (parseFloat(y) + 3) + ')'
           'w': w
         )
 
-        # Use a coloring function if defined, else use a color string value
-        color = if angular.isFunction(series.color) \
-          then series.color(datum, series.values.indexOf(datum)) else series.color
-
         y2Tooltip.select('path')
-          .style('fill', color)
           .attr(
+            'fill': series.color
             'd': this.getY2TooltipPath(w)
             'transform': 'translate(0, ' + y + ')'
           )
